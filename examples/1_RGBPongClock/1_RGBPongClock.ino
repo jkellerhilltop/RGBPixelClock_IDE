@@ -123,10 +123,10 @@ boolean demoActive;
 
 
 /***** Weather webhook definitions *****/
-#define HOOK_RESP	"hook-response/justineventweather"	// specify your hook event name here
-#define HOOK_PUB	"justineventweather"		// and here
+#define HOOK_RESP	"hook-response/"	// specify your hook event name here
+#define HOOK_PUB	""		// and here
 #define DEFAULT_CITY	"\"mycity\":\"Rosemont,PA\""	// Change to desired default city,state
-#define API_KEY		"\"apikey\":\"f6a6a39c02d37b1de98174f2631ff7ab\""// Add your API key here
+#define API_KEY		"\"apikey\":\"\""// Add your API key here
 #define UNITS		"\"units\":\"imperial\""		// Change to "imperial" for farenheit units
 /***************************************/
 
