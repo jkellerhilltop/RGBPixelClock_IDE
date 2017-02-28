@@ -1,3 +1,15 @@
+// This #include statement was automatically added by the Particle IDE.
+#include "RGBmatrixPanel/RGBmatrixPanel.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "SparkIntervalTimer/SparkIntervalTimer.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "Adafruit_mfGFX/Adafruit_mfGFX.h"
+
+// This #include statement was automatically added by the Particle IDE.
+#include "RGBPixelClock/RGBPixelClock.h"
+
 /*  RGB Pong Clock
 **  Adapted by Paul Kourany, @peekay123 from Andrew Holmes @pongclock
 **  Inspired by, and shamelessly derived from 
@@ -12,16 +24,17 @@
 **  Please refer to  https://github.com/pkourany/RGBPixelClock_IDE for details
 */
 
+/* !!!!  In order for this app to compile correctly, the following Web IDE libraries MUST be attched:   !!!
+**  Adafruit_mfGFX
+**  SparkIntervalTimer
+**  RGBmatrixPanel
+*/
 
-#include "Adafruit_mfGFX.h"
-#include "SparkIntervalTimer.h"
-#include "RGBmatrixPanel.h"
-
-#include "RGBPixelClock.h"   // Core graphics library
-#include "fix_fft.h"
-#include "blinky.h"
-#include "font3x5.h"
-#include "font5x5.h"
+#include "RGBPixelClock/RGBPixelClock.h"   // Core graphics library
+#include "RGBPixelClock/fix_fft.h"
+#include "RGBPixelClock/blinky.h"
+#include "RGBPixelClock/font3x5.h"
+#include "RGBPixelClock/font5x5.h"
 
 
 SYSTEM_THREAD(ENABLED);
@@ -45,7 +58,7 @@ extern char* itoa(int a, char* buffer, unsigned char radix);
 #endif
 
 /********** DEMO Mode definitions **********/
-#define DEMOMODE
+//#define DEMOMODE
 #define WIRELESS_JUMPER	DAC
 boolean demoActive;
 /*******************************************/
@@ -110,11 +123,11 @@ boolean demoActive;
 
 
 /***** Weather webhook definitions *****/
-#define HOOK_RESP	"hook-response/hook event name"	// specify your hook event name here
-#define HOOK_PUB	"hook event name"		// and here
-#define DEFAULT_CITY	"\"mycity\":\"Ottawa,ON\""	// Change to desired default city,state
-#define API_KEY		"\"apikey\":\"xxxxxxxxxxxxxxx\""// Add your API key here
-#define UNITS		"\"units\":\"metric\""		// Change to "imperial" for farenheit units
+#define HOOK_RESP	"hook-response/justineventweather"	// specify your hook event name here
+#define HOOK_PUB	"justineventweather"		// and here
+#define DEFAULT_CITY	"\"mycity\":\"Rosemont,PA\""	// Change to desired default city,state
+#define API_KEY		"\"apikey\":\"f6a6a39c02d37b1de98174f2631ff7ab\""// Add your API key here
+#define UNITS		"\"units\":\"imperial\""		// Change to "imperial" for farenheit units
 /***************************************/
 
 /***** Create RGBmatrix Panel instance *****
@@ -145,15 +158,15 @@ unsigned long lastWeatherTime = 0;
 int stringPos;
 int mode_changed = 0;			// Flag indicating mode changed.
 bool mode_quick = false;		// Quick weather display
-int clock_mode = 0;				// Default clock mode (1 = pong)
-uint16_t showClock = 300;		// Default time to show a clock face in seconds
+int clock_mode = 1;				// Default clock mode (1 = pong)
+uint16_t showClock = 60000;		// Default time to show a clock face in seconds
 unsigned long modeSwitch;
 unsigned long updateCTime;		// 24hr timer for resyncing cloud time
 /***************************************************/
 
 
 /********** PACMAN definitions **********/
-#define usePACMAN		// Uncomment to enable PACMAN animations
+//#define usePACMAN		// Uncomment to enable PACMAN animations
 
 #ifdef usePACMAN
 	#define BAT1_X 2		// Pong left bat x pos (this is where the ball collision occurs, the bat is drawn 1 behind these coords)
@@ -278,7 +291,7 @@ void display_date();
 void flashing_cursor(byte xpos, byte ypos, byte cursor_width, byte cursor_height, byte repeats);
 void drawString(int x, int y, char* c,uint8_t font_size, uint16_t color);
 void drawChar(int x, int y, char c, uint8_t font_size, uint16_t color);
-int calc_font_displacement(uint8_t font_size);
+int calc_font_dixsplacement(uint8_t font_size);
 void spectrumDisplay();
 void plasma();
 void marquee();
@@ -296,7 +309,7 @@ void setup() {
 	unsigned long resetTime;
 
 	demoActive = false;
-
+    randomSeed(analogRead(0));  
 
 #if defined (DEMOMODE)
 	pinMode(WIRELESS_JUMPER, INPUT_PULLUP);
@@ -359,8 +372,8 @@ void setup() {
 	
 	//*** RESTORE CITY FROM EEPROM - IF NOT PREVIOUSLY FLASHED, STORE DEFAULT CITY
 
-	pacMan();
-	quickWeather();
+//	pacMan();
+//	quickWeather();
 
 	clock_mode = random(0,MAX_CLOCK_MODE-1);
 	modeSwitch = millis();
@@ -399,31 +412,31 @@ void loop(){
 	//reset clock type clock_mode
 	switch (clock_mode){
 	case 0: 
-		normal_clock(); 
+		normal_clock();
 		break; 
 	case 1: 
-		pong(); 
+		normal_clock();
 		break;
 	case 2: 
-		word_clock(); 
+		normal_clock();
 		break;
 	case 3: 
-		jumble(); 
+		normal_clock(); 
 		break; 
 	case 4: 
-		spectrumDisplay();
+		normal_clock();
 		break;
 	case 5: 
-		plasma();
+		normal_clock();
 		break;
 	case 6: 
-		marquee();
+		normal_clock();
 		break;
 	case 7: 
-		conwayLife();
+		normal_clock();
 		break;
 	case 8:
-		rainbow();
+		normal_clock();
 		break;
 	default:
 		normal_clock();
@@ -481,19 +494,19 @@ int setMode(String command)
 	}
 	else if(command == "pong") {
 		mode_changed = 1;
-		clock_mode = 1;
+		clock_mode = 0;
 	}
 	else if(command == "word") {
 		mode_changed = 1;
-		clock_mode = 2;
+		clock_mode = 0;
 	}
 	else if(command == "jumble") {
 		mode_changed = 1;
-		clock_mode = 3;
+		clock_mode = 0;
 	}
 	else if(command == "spectrum") {
 		mode_changed = 1;
-		clock_mode = 4;
+		clock_mode = 0;
 	}
 	else if(command == "quick") {
 		mode_quick = true;
@@ -501,15 +514,15 @@ int setMode(String command)
 	}
 	else if(command == "plasma") {
 		mode_changed = 1;
-		clock_mode = 5;
+		clock_mode = 0;
 	}
 	else if(command == "marquee") {
 		mode_changed = 1;
-		clock_mode = 6;
+		clock_mode = 0;
 	}
 	else if(command == "life") {
 		mode_changed = 1;
-		clock_mode = 7;
+		clock_mode = 0;
 	}
 	else if(command == "rainbow") {
 		mode_changed = 1;
@@ -526,7 +539,7 @@ int setMode(String command)
 
 //*****************Weather Stuff*********************
 
-void quickWeather(){
+void quickWeather(){ /*
 	getWeather();
 	if(weatherGood) {
 		showWeather();
@@ -538,259 +551,28 @@ void quickWeather(){
 		matrix.swapBuffers(true);
 		Particle.process();
 		delay(1000);
-	}
+	} */
 }
 
 void getWeather(){
-	DEBUGpln("in getWeather");
-	char vars[90];
-
-	if (demoActive) {			// Skip getting weather if in demo mode
-		weatherGood = true;
-		return;
-	}
-	
-	weatherGood = false;
-	
-	// Build json string for webhook
-	strcpy(vars, "{");
-	strcat(vars, city);
-	strcat(vars, ",");
-	strcat(vars, UNITS);
-	strcat(vars, ",");
-	strcat(vars, API_KEY);
-	strcat(vars, "}");
-	
-	// publish the event with city data that will trigger the webhook
-	Particle.publish(HOOK_PUB, vars, 60, PRIVATE);
-
-	unsigned long wait = millis();
-	while(!weatherGood && (millis() < wait + 5000UL))	//wait for subscribe to kick in or 5 secs
-		Particle.process();
-
-	if (!weatherGood) {
-		DEBUGpln("Weather update failed");
-		badWeatherCall++;
-		if (badWeatherCall > 4)	{	//If 3 webhook call fail in a row, do a system reset
-			System.reset();
-		}
-	}
-	else
-		badWeatherCall = 0;
 }
 
 
-void processWeather(const char *name, const char *data){
-	weatherGood = true;
-	lastWeatherTime = millis();
-	stringPos = strlen((const char *)data);
-	DEBUGpln("in process weather");
-
-	memset(&w_temp,0,8*7);
-	memset(&w_id,0,8*4);
-	int dayCounter =0;
-	int itemCounter = 0;
-	int tempStringLoc=0;
-	boolean dropChar = false;
-	
-	for (int i=0; i<stringPos; i++) {
-		if(data[i]=='~'){
-			itemCounter++;
-			tempStringLoc = 0;
-			dropChar = false;
-			if(itemCounter>1){
-				dayCounter++;
-				itemCounter=0;
-			}
-		}
-		else if(data[i]=='.' || data[i]=='"') {
-			//if we get a . we want to drop all characters until the next ~
-			dropChar=true;
-		}
-		else {
-			if(!dropChar) {
-				switch(itemCounter) {
-				case 0:
-					w_temp[dayCounter][tempStringLoc++] = data[i];
-					break;
-				case 1:
-					w_id[dayCounter][tempStringLoc++] = data[i];
-					break;
-				}
-			}
-		}
-	}
+void processWeather(const char *name, const char *data){ 
 }
 
 void showWeather(){
 	byte dow = Time.weekday()-1;
 	char daynames[7][4]={"Sun", "Mon","Tue", "Wed", "Thu", "Fri", "Sat"};
 	DEBUGpln("in showWeather");
-	
-	for(int i = 0 ; i<7; i++){
-		int numTemp = atoi(w_temp[i]);
-		if (numTemp<-14) {numTemp=-10;}	//fix within range to generate colour value
-		if (numTemp>34) {numTemp =30;}
-		
-		numTemp = numTemp +14;			//add 14 so it falls between 0 and 48
-		numTemp = numTemp / 3;			//divide by 3 so value between 0 and 16
 
-		int tempColor;
-		if(numTemp<8) {
-			tempColor = matrix.Color444(0,tempColor/2,7);
-		}
-		else {
-			tempColor = matrix.Color444(7,(7-numTemp/2) ,0); 
-		}
-
-		cls();
-
-		//Display the day on the top line.
-		if(i==0) {
-			drawString(2,2,(char*)"Now",51,matrix.Color444(1,1,1));
-		}
-		else {
-			drawString(2,2,daynames[(dow+i-1) % 7],51,matrix.Color444(0,1,0));
-			DEBUGpln(daynames[(dow+i-1)%7]);
-		}
-
-		//put the temp underneath
-		boolean positive = !(w_temp[i][0]=='-');
-		for(int t=0; t<7; t++) {
-			if(w_temp[i][t]=='-') {
-				matrix.drawLine(3,10,4,10,tempColor);
-			}
-			else if(!(w_temp[i][t]==0)) {
-				vectorNumber(w_temp[i][t]-'0',t*4+2+(positive*2),8,tempColor,1,1);
-			}
-		}
-
-		matrix.swapBuffers(true);
-		drawWeatherIcon(16,0,atoi(w_id[i]));
-
-		Particle.process();	//Give the background process some lovin'
-	}
 }
 
-void drawWeatherIcon(uint8_t x, uint8_t y, int id)
+void drawWeatherIcon(uint8_t x, uint8_t y, int id) 
 {
-	unsigned long start = millis();
-	static int rain[12];
-	
-	for(int r=0; r<13; r++) {
-		//rain[r]=random(9,18);
-		rain[r]=random(9,15);
-	}
-	int rainColor = matrix.Color333(0,0,1);
-	byte intensity=id-(id/10)*10 + 1;
 
-	int deep =0;
-	boolean raining = false;
-	DEBUGpln(id);
-	DEBUGpln(intensity);
-
-	while(millis() < start+5000) {
-		switch(id/100) {
-		case 2:
-			//Thunder
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,0));
-			matrix.drawBitmap(x,y,cloud_outline,16,16,matrix.Color333(1,1,1));
-			if(random(0,10)==3) {
-				int pos = random(-5,5);
-				matrix.drawBitmap(pos+x,y,lightning,16,16,matrix.Color333(1,1,1));
-			}
-			raining = true;
-			break;
-		case 3:  
-			//drizzle
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,0));
-			matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-			raining=true;
-			break;
-		case 5:
-			//rain was 5
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,0));
-			
-			if(intensity<3) {
-				matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-			}
-			else{
-				matrix.drawBitmap(x,y,cloud_outline,16,16,matrix.Color333(1,1,1));
-			}
-			raining = true;
-			break;
-		case 6:
-			//snow was 6
-			rainColor = matrix.Color333(4,4,4);
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,0));
-			
-			deep = (millis()-start)/500;
-			if(deep>6) deep=6;
-
-			if(intensity<3) {
-				matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-				matrix.fillRect(x,y+16-deep/2,16,deep/2,rainColor);
-			}
-			else {
-				matrix.drawBitmap(x,y,cloud_outline,16,16,matrix.Color333(1,1,1));
-				matrix.fillRect(x,y+16-(deep),16,deep,rainColor);
-			}
-			raining = true;
-			break;  
-		case 7:
-			//atmosphere
-			matrix.drawRect(x,y,16,16,matrix.Color333(1,0,0));
-			drawString(x+2,y+6,(char*)"FOG",51,matrix.Color333(1,1,1));
-			break;
-		case 8:
-			//cloud
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,1));
-			if(id==800) {
-				matrix.drawBitmap(x,y,big_sun,16,16,matrix.Color333(2,2,0));
-			}
-			else{
-				if(id==801) {
-					matrix.drawBitmap(x,y,big_sun,16,16,matrix.Color333(2,2,0));
-					matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-				}
-				else {
-					if(id==802 || id ==803) {
-						matrix.drawBitmap(x,y,small_sun,16,16,matrix.Color333(1,1,0));
-					}
-					matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-					matrix.drawBitmap(x,y,cloud_outline,16,16,matrix.Color333(0,0,0));
-				}
-			}
-			break;
-		case 9:
-			//extreme
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,0,0));
-			matrix.drawRect(x,y,16,16,matrix.Color333(7,0,0));
-			if(id==906) {
-				raining =true; 
-				intensity=3;
-				matrix.drawBitmap(x,y,cloud,16,16,matrix.Color333(1,1,1));
-			}
-			break;
-		default:
-			matrix.fillRect(x,y,16,16,matrix.Color333(0,1,1));
-			matrix.drawBitmap(x,y,big_sun,16,16,matrix.Color333(2,2,0));
-			break;    
-		}
-		if(raining) {
-			for(int r = 0; r<13; r++) {
-				matrix.drawPixel(x+r+2, rain[r]++, rainColor);
-				if(rain[r]==16) rain[r]=9;
-				//if(rain[r]==20) rain[r]=9;
-			}
-		} 
-		matrix.swapBuffers(false);
-		Particle.process();	//Give the background process some lovin'
-		delay(( 50 -( intensity * 10 )) < 0 ? 0: 50-intensity*10);
-	}
 }
 //*****************End Weather Stuff*********************
-
 
 void scrollBigMessage(char *m){
 	matrix.setTextSize(1);
@@ -836,492 +618,48 @@ void pacClear()
 	//or the last time we had it, it was bad, 
 	//or weve never had it before.
 	if((millis()>lastWeatherTime+1800000) || lastWeatherTime==0 || !weatherGood) {
-		getWeather();
+	//	getWeather();
 	}
 
 	if(!wasWeatherShownLast && weatherGood) {
-		showWeather();
+	//	showWeather();
 		wasWeatherShownLast = true;
 	}
 	else {  
 		wasWeatherShownLast = false;
-		pacMan();
+	//	pacMan();
 	}
 }  
 
 
-void pacMan()
-{
-#if defined (usePACMAN)
-	DEBUGpln("in pacMan");
-	if(powerPillEaten>0){
-		for(int i =32+(powerPillEaten*17); i>-17; i--) {
-			long nowish = millis();
-			cls();
-
-			drawPac(i,0,-1);
-			if(powerPillEaten>0) drawScaredGhost(i-17,0);
-			if(powerPillEaten>1) drawScaredGhost(i-34,0);
-			if(powerPillEaten>2) drawScaredGhost(i-51,0);
-			if(powerPillEaten>3) drawScaredGhost(i-68,0);
-
-			matrix.swapBuffers(false);    
-			while(millis()-nowish<50) Particle.process();	//Give the background process some lovin'
-		}
-		powerPillEaten = 0;
-	}
-	else {  
-
-		int hasEaten = 0;
-
-		int powerPill = random(0,5);
-		int numGhosts=random(0,4);
-		if (powerPill ==0) {
-			if (numGhosts==0) numGhosts++;
-			powerPillEaten = numGhosts;
-		}
-
-		for (int i=-17; i<32+(numGhosts*17); i++) {
-			cls();
-			long nowish = millis();
-			for(int j = 0; j<6;j++) {
-				if ( j*5> i){
-					if (powerPill==0 && j==4) {
-						matrix.fillCircle(j*5,8,2,matrix.Color333(7,3,0));
-					}
-					else {
-						matrix.fillRect(j*5,8,2,2,matrix.Color333(7,3,0));
-					}
-				}
-			}
-
-			if (i==19 && powerPill == 0) hasEaten=1;
-			drawPac(i,0,1);
-			if (hasEaten == 0 ){
-				if (numGhosts>0) drawGhost(i-17,0,matrix.Color333(3,0,3));
-				if (numGhosts>1) drawGhost(i-34,0,matrix.Color333(3,0,0));
-				if (numGhosts>2) drawGhost(i-51,0,matrix.Color333(0,3,3));
-				if (numGhosts>3) drawGhost(i-68,0,matrix.Color333(7,3,0));
-			}
-			else {
-				if (numGhosts>0) drawScaredGhost(i-17-(i-19)*2,0);
-				if (numGhosts>1) drawScaredGhost(i-34-(i-19)*2,0);
-				if (numGhosts>2) drawScaredGhost(i-51-(i-19)*2,0);
-				if (numGhosts>3) drawScaredGhost(i-68-(i-19)*2,0);
-			}
-			matrix.swapBuffers(false);
-			while(millis()-nowish<50) Particle.process();	//Give the background process some lovin'
-		}
-	}
-#endif //usePACMAN
-}
+void pacMan() {}
 
 #if defined (usePACMAN)
 void drawPac(int x, int y, int z){
-	int c = matrix.Color333(3,3,0);
-	if(x>-16 && x<32){
-		if(abs(x)%4==0){
-			matrix.drawBitmap(x,y,(z>0?pac:pac_left),16,16,c);
-		}
-		else if(abs(x)%4==1 || abs(x)%4==3){
-			matrix.drawBitmap(x,y,(z>0?pac2:pac_left2),16,16,c);
-		}
-		else{
-			matrix.drawBitmap(x,y,(z>0?pac3:pac_left3),16,16,c);
-		}
-	}
+
 }
 
 void drawGhost( int x, int y, int color){
-	if(x>-16 && x<32){
-		if(abs(x)%8>3){
-			matrix.drawBitmap(x,y,blinky,16,16,color);
-		}
-		else{
-			matrix.drawBitmap(x,y,blinky2,16,16,color);
-		}
-		matrix.drawBitmap(x,y,eyes1,16,16,matrix.Color333(3,3,3));
-		matrix.drawBitmap(x,y,eyes2,16,16,matrix.Color333(0,0,7));
-	}
+
 }  
 
 void drawScaredGhost( int x, int y){
-	if(x>-16 && x<32){
-		if(abs(x)%8>3){
-			matrix.drawBitmap(x,y,blinky,16,16,matrix.Color333(0,0,7));
-		}
-		else{
-			matrix.drawBitmap(x,y,blinky2,16,16,matrix.Color333(0,0,7));
-		}
-		matrix.drawBitmap(x,y,scared,16,16,matrix.Color333(7,3,2));
-	}
-}  
-#endif  //usePACMAN
 
+}  
+#endif 
 
 void cls(){
 	matrix.fillScreen(0);
 }
 
 void pong(){
-	DEBUGpln("in Pong");
-	matrix.setTextSize(1);
-	matrix.setTextColor(matrix.Color333(2, 2, 2));
-
-	float ballpos_x, ballpos_y;
-	float ballvel_x, ballvel_y;
-	int bat1_y = 5;  //bat starting y positions
-	int bat2_y = 5;  
-	int bat1_target_y = 5;  //bat targets for bats to move to
-	int bat2_target_y = 5;
-	byte bat1_update = 1;  //flags - set to update bat position
-	byte bat2_update = 1;
-	byte bat1miss, bat2miss; //flags set on the minute or hour that trigger the bats to miss the ball, thus upping the score to match the time.
-	byte restart = 1;   //game restart flag - set to 1 initially to setup 1st game
-
-	cls();
-
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {
-		cls();
-		//draw pitch centre line
-		int adjust = 0;
-		if(Time.second()%2==0)adjust=1;
-		for (byte i = 0; i <16; i++) {
-			if ( i % 2 == 0 ) { //plot point if an even number
-				matrix.drawPixel(16,i+adjust,matrix.Color333(0,4,0));
-			}
-		} 
-
-		//main pong game loop
-		if (mode_changed == 1)
-		return;
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			pong();
-			return;
-		}	
-
-		int ampm=0;
-		//update score / time
-		byte mins = Time.minute();
-		byte hours = Time.hour();
-		if (hours > 12) {
-			hours = hours - ampm * 12;
-		}
-		if (hours < 1) {
-			hours = hours + ampm * 12;
-		}
-
-		char buffer[3];
-
-		itoa(hours,buffer,10);
-		//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-		if (hours < 10) {
-			buffer[1] = buffer[0];
-			buffer[0] = '0';
-		}
-		vectorNumber(buffer[0]-'0',8,1,matrix.Color333(1,1,1),1,1);
-		vectorNumber(buffer[1]-'0',12,1,matrix.Color333(1,1,1),1,1);
-
-		itoa(mins,buffer,10); 
-		if (mins < 10) {
-			buffer[1] = buffer[0];
-			buffer[0] = '0';
-		} 
-		vectorNumber(buffer[0]-'0',18,1,matrix.Color333(1,1,1),1,1);
-		vectorNumber(buffer[1]-'0',22,1,matrix.Color333(1,1,1),1,1);
-
-		//if restart flag is 1, setup a new game
-		if (restart) {
-			//set ball start pos
-			ballpos_x = 16;
-			ballpos_y = random (4,12);
-
-			//pick random ball direction
-			if (random(0,2) > 0) {
-				ballvel_x = 1; 
-			} 
-			else {
-				ballvel_x = -1;
-			}
-			if (random(0,2) > 0) {
-				ballvel_y = 0.5; 
-			} 
-			else {
-				ballvel_y = -0.5;
-			}
-			//draw bats in initial positions
-			bat1miss = 0; 
-			bat2miss = 0;
-			//reset game restart flag
-			restart = 0;
-		}
-
-		//if coming up to the minute: secs = 59 and mins < 59, flag bat 2 (right side) to miss the return so we inc the minutes score
-		if (Time.second() == 59 && Time.minute() < 59){
-			bat1miss = 1;
-		}
-		// if coming up to the hour: secs = 59  and mins = 59, flag bat 1 (left side) to miss the return, so we inc the hours score.
-		if (Time.second() == 59 && Time.minute() == 59){
-			bat2miss = 1;
-		}
-
-		//AI - we run 2 sets of 'AI' for each bat to work out where to go to hit the ball back 
-		//very basic AI...
-		// For each bat, First just tell the bat to move to the height of the ball when we get to a random location.
-		//for bat1
-		if (ballpos_x == random(18,32)){
-			bat1_target_y = ballpos_y;
-		}
-		//for bat2
-		if (ballpos_x == random(4,16)){
-			bat2_target_y = ballpos_y;
-		}
-
-		//when the ball is closer to the left bat, run the ball maths to find out where the ball will land
-		if (ballpos_x == 15 && ballvel_x < 0) {
-
-			byte end_ball_y = pong_get_ball_endpoint(ballpos_x, ballpos_y, ballvel_x, ballvel_y);
-
-			//if the miss flag is set,  then the bat needs to miss the ball when it gets to end_ball_y
-			if (bat1miss == 1){
-				bat1miss = 0;
-				if ( end_ball_y > 8){
-					bat1_target_y = random (0,3); 
-				} 
-				else {
-					bat1_target_y = 8 + random (0,3);              
-				}      
-			} 
-			//if the miss flag isn't set,  set bat target to ball end point with some randomness so its not always hitting top of bat
-			else {
-				bat1_target_y = end_ball_y - random (0, 6);        
-				//check not less than 0
-				if (bat1_target_y < 0){
-					bat1_target_y = 0;
-				}
-				if (bat1_target_y > 10){
-					bat1_target_y = 10;
-				} 
-			}
-		}
-
-		//right bat AI
-		//if positive velocity then predict for right bat - first just match ball height
-		//when the ball is closer to the right bat, run the ball maths to find out where it will land
-		if (ballpos_x == 17 && ballvel_x > 0) {
-
-			byte end_ball_y = pong_get_ball_endpoint(ballpos_x, ballpos_y, ballvel_x, ballvel_y);
-
-			//if flag set to miss, move bat out way of ball
-			if (bat2miss == 1){
-				bat2miss = 0;
-				//if ball end point above 8 then move bat down, else move it up- so either way it misses
-				if (end_ball_y > 8){
-					bat2_target_y = random (0,3); 
-				} 
-				else {
-					bat2_target_y = 8 + random (0,3);
-				}      
-			} 
-			else {
-				//set bat target to ball end point with some randomness 
-				bat2_target_y =  end_ball_y - random (0,6);
-				//ensure target between 0 and 15
-				if (bat2_target_y < 0){
-					bat2_target_y = 0;
-				} 
-				if (bat2_target_y > 10){
-					bat2_target_y = 10;
-				} 
-			}
-		}
-
-		//move bat 1 towards target    
-		//if bat y greater than target y move down until hit 0 (dont go any further or bat will move off screen)
-		if (bat1_y > bat1_target_y && bat1_y > 0 ) {
-			bat1_y--;
-			bat1_update = 1;
-		}
-
-		//if bat y less than target y move up until hit 10 (as bat is 6)
-		if (bat1_y < bat1_target_y && bat1_y < 10) {
-			bat1_y++;
-			bat1_update = 1;
-		}
-
-		//draw bat 1
-		if (bat1_update){
-			matrix.fillRect(BAT1_X-1,bat1_y,2,6,matrix.Color333(0,0,4));
-		}
-
-		//move bat 2 towards target (dont go any further or bat will move off screen)
-		//if bat y greater than target y move down until hit 0
-		if (bat2_y > bat2_target_y && bat2_y > 0 ) {
-			bat2_y--;
-			bat2_update = 1;
-		}
-
-		//if bat y less than target y move up until hit max of 10 (as bat is 6)
-		if (bat2_y < bat2_target_y && bat2_y < 10) {
-			bat2_y++;
-			bat2_update = 1;
-		}
-
-		//draw bat2
-		if (bat2_update){
-			matrix.fillRect(BAT2_X+1,bat2_y,2,6,matrix.Color333(0,0,4));
-		}
-
-		//update the ball position using the velocity
-		ballpos_x =  ballpos_x + ballvel_x;
-		ballpos_y =  ballpos_y + ballvel_y;
-
-		//check ball collision with top and bottom of screen and reverse the y velocity if either is hit
-		if (ballpos_y <= 0 ){
-			ballvel_y = ballvel_y * -1;
-			ballpos_y = 0; //make sure value goes no less that 0
-		}
-
-		if (ballpos_y >= 15){
-			ballvel_y = ballvel_y * -1;
-			ballpos_y = 15; //make sure value goes no more than 15
-		}
-
-		//check for ball collision with bat1. check ballx is same as batx
-		//and also check if bally lies within width of bat i.e. baty to baty + 6. We can use the exp if(a < b && b < c) 
-		if ((int)ballpos_x == BAT1_X+1 && (bat1_y <= (int)ballpos_y && (int)ballpos_y <= bat1_y + 5) ) { 
-
-			//random if bat flicks ball to return it - and therefor changes ball velocity
-			if(!random(0,3)) { //not true = no flick - just straight rebound and no change to ball y vel
-				ballvel_x = ballvel_x * -1;
-			} 
-			else {
-				bat1_update = 1;
-				byte flick;  //0 = up, 1 = down.
-
-				if (bat1_y > 1 || bat1_y < 8){
-					flick = random(0,2);   //pick a random dir to flick - up or down
-				}
-
-				//if bat 1 or 2 away from top only flick down
-				if (bat1_y <=1 ){
-					flick = 0;   //move bat down 1 or 2 pixels 
-				} 
-				//if bat 1 or 2 away from bottom only flick up
-				if (bat1_y >=  8 ){
-					flick = 1;  //move bat up 1 or 2 pixels 
-				}
-
-				switch (flick) {
-					//flick up
-				case 0:
-					bat1_target_y = bat1_target_y + random(1,3);
-					ballvel_x = ballvel_x * -1;
-					if (ballvel_y < 2) {
-						ballvel_y = ballvel_y + 0.2;
-					}
-					break;
-
-					//flick down
-				case 1:   
-					bat1_target_y = bat1_target_y - random(1,3);
-					ballvel_x = ballvel_x * -1;
-					if (ballvel_y > 0.2) {
-						ballvel_y = ballvel_y - 0.2;
-					}
-					break;
-				}
-			}
-		}
-
-		//check for ball collision with bat2. check ballx is same as batx
-		//and also check if bally lies within width of bat i.e. baty to baty + 6. We can use the exp if(a < b && b < c) 
-		if ((int)ballpos_x == BAT2_X && (bat2_y <= (int)ballpos_y && (int)ballpos_y <= bat2_y + 5) ) { 
-
-			//random if bat flicks ball to return it - and therefor changes ball velocity
-			if(!random(0,3)) {
-				ballvel_x = ballvel_x * -1;    //not true = no flick - just straight rebound and no change to ball y vel
-			} 
-			else {
-				bat1_update = 1;
-				byte flick;  //0 = up, 1 = down.
-
-				if (bat2_y > 1 || bat2_y < 8){
-					flick = random(0,2);   //pick a random dir to flick - up or down
-				}
-				//if bat 1 or 2 away from top only flick down
-				if (bat2_y <= 1 ){
-					flick = 0;  //move bat up 1 or 2 pixels 
-				} 
-				//if bat 1 or 2 away from bottom only flick up
-				if (bat2_y >=  8 ){
-					flick = 1;   //move bat down 1 or 2 pixels 
-				}
-
-				switch (flick) {
-					//flick up
-				case 0:
-					bat2_target_y = bat2_target_y + random(1,3);
-					ballvel_x = ballvel_x * -1;
-					if (ballvel_y < 2) {
-						ballvel_y = ballvel_y + 0.2;
-					}
-					break;
-
-					//flick down
-				case 1:   
-					bat2_target_y = bat2_target_y - random(1,3);
-					ballvel_x = ballvel_x * -1;
-					if (ballvel_y > 0.2) {
-						ballvel_y = ballvel_y - 0.2;
-					}
-					break;
-				}
-			}
-		}
-
-		//plot the ball on the screen
-		byte plot_x = (int)(ballpos_x + 0.5f);
-		byte plot_y = (int)(ballpos_y + 0.5f);
-
-		matrix.drawPixel(plot_x,plot_y,matrix.Color333(4, 0, 0));
-
-		//check if a bat missed the ball. if it did, reset the game.
-		if ((int)ballpos_x == 0 ||(int) ballpos_x == 32){
-			restart = 1; 
-		}
-
-		Particle.process();	//Give the background process some lovin'
-		delay(40);
-		matrix.swapBuffers(false);
-	} 
-}
-byte pong_get_ball_endpoint(float tempballpos_x, float  tempballpos_y, float  tempballvel_x, float tempballvel_y) {
-
-	//run prediction until ball hits bat
-	while (tempballpos_x > BAT1_X && tempballpos_x < BAT2_X  ){
-		tempballpos_x = tempballpos_x + tempballvel_x;
-		tempballpos_y = tempballpos_y + tempballvel_y;
-		//check for collisions with top / bottom
-		if (tempballpos_y <= 0 || tempballpos_y >= 15){
-			tempballvel_y = tempballvel_y * -1;
-		}    
-	}  
-	return tempballpos_y; 
-}
-
+    normal_clock();}
 void normal_clock()
 {
 	DEBUGpln("in normal_clock");
 	matrix.setTextWrap(false); // Allow text to run off right edge
 	matrix.setTextSize(2);
-	matrix.setTextColor(matrix.Color333(2, 3, 2));
-
+	matrix.setTextColor(matrix.Color333(2, (int)random(2,255), 2)); //check fail
 	byte hours = Time.hour();
 	byte mins = Time.minute();
 
@@ -1333,7 +671,7 @@ void normal_clock()
 	int  lsLastHourPosition = 0;
 	int  msLastMinPosition = 0;
 	int  lsLastMinPosition = 0;      
-
+    randomSeed(analogRead(A7));
 	//Start with all characters off screen
 	int c1 = -17;
 	int c2 = -17;
@@ -1355,8 +693,8 @@ void normal_clock()
 		return;
 		if(mode_quick){
 			mode_quick = false;
-			display_date();
-			quickWeather();
+			//display_date();
+			//quickWeather();
 			normal_clock();
 			return;
 		}
@@ -1385,16 +723,18 @@ void normal_clock()
 		lsLastHourPosition = c2 + 17;
 
 		//update the display
-		//shadows first
-		vectorNumber((lastHourBuffer[0]-'0'), 2, 2+msLastHourPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-		vectorNumber((lastHourBuffer[1]-'0'), 9, 2+lsLastHourPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-		vectorNumber((buffer[0]-'0'), 2, 2+msHourPosition, matrix.Color444(0,0,1),scale_x,scale_y);
+		//shadows first 
+		int coltimes9=(int)random(2,255);
+		int coltimes10=(int)random(2,255);
+		vectorNumber((lastHourBuffer[0]-'0'), 2, 2+msLastHourPosition, matrix.Color444(coltimes9,(int)random(2,255),1),scale_x,scale_y);
+		vectorNumber((lastHourBuffer[1]-'0'), 9, 2+lsLastHourPosition, matrix.Color444(0,(int)random(2,255),1),scale_x,scale_y);
+		vectorNumber((buffer[0]-'0'), 2, 2+msHourPosition, matrix.Color444(0,(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
 		vectorNumber((buffer[1]-'0'), 9, 2+lsHourPosition, matrix.Color444(0,0,1),scale_x,scale_y); 
 
 		vectorNumber((lastHourBuffer[0]-'0'), 1, 1+msLastHourPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((lastHourBuffer[1]-'0'), 8, 1+lsLastHourPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((buffer[0]-'0'), 1, 1+msHourPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((buffer[1]-'0'), 8, 1+lsHourPosition, matrix.Color444(1,1,1),scale_x,scale_y);    
+		vectorNumber((lastHourBuffer[1]-'0'), 8, 1+lsLastHourPosition, matrix.Color444(1,(int)random(2,255),1),scale_x,scale_y);
+		vectorNumber((buffer[0]-'0'), 1, 1+msHourPosition, matrix.Color444(1,99,99),scale_x,scale_y);
+		vectorNumber((buffer[1]-'0'), 8, 1+lsHourPosition, matrix.Color444((int)random(2,255),74,48),scale_x,scale_y);    
 
 		if(c1==0) lastHourBuffer[0]=buffer[0];
 		if(c2==0) lastHourBuffer[1]=buffer[1];
@@ -1403,7 +743,7 @@ void normal_clock()
 		matrix.fillRect(16,11,2,2,matrix.Color444(0,0,Time.second()%2));
 
 		matrix.fillRect(15,4,2,2,matrix.Color444(Time.second()%2,Time.second()%2,Time.second()%2));
-		matrix.fillRect(15,10,2,2,matrix.Color444(Time.second()%2,Time.second()%2,Time.second()%2));
+		matrix.fillRect(15,10,2,2,matrix.Color444(Time.second()%2,(int)random(2,255),Time.second()%2)); //change me FIXME
 
 		itoa (mins, buffer, 10);
 		if (mins < 10) {
@@ -1420,17 +760,18 @@ void normal_clock()
 		if( c4 < 0 )c4++;
 		lsMinPosition = c4;
 		lsLastMinPosition = c4 + 17;
-
-		vectorNumber((buffer[0]-'0'), 19, 2+msMinPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-		vectorNumber((buffer[1]-'0'), 26, 2+lsMinPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-		vectorNumber((lastMinBuffer[0]-'0'), 19, 2+msLastMinPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-		vectorNumber((lastMinBuffer[1]-'0'), 26, 2+lsLastMinPosition, matrix.Color444(0,0,1),scale_x,scale_y);
-
-		vectorNumber((buffer[0]-'0'), 18, 1+msMinPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((buffer[1]-'0'), 25, 1+lsMinPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((lastMinBuffer[0]-'0'), 18, 1+msLastMinPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-		vectorNumber((lastMinBuffer[1]-'0'), 25, 1+lsLastMinPosition, matrix.Color444(1,1,1),scale_x,scale_y);
-
+        int coltimes11=(int)random(2,255);
+        int coltimes12=(int)random(2,255);
+		vectorNumber((buffer[0]-'0'), 19, 2+msMinPosition, matrix.Color444((int)random(2,255),coltimes10,(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((buffer[1]-'0'), 26, 2+lsMinPosition, matrix.Color444((int)random(2,255),(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((lastMinBuffer[0]-'0'), 19, 2+msLastMinPosition, matrix.Color444(coltimes12,(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((lastMinBuffer[1]-'0'), 26, 2+lsLastMinPosition, matrix.Color444((int)random(2,255),coltimes11,(int)random(2,255)),scale_x,scale_y);
+        randomSeed(4903286709458670984676856270498567);
+		vectorNumber((buffer[0]-'0'), 18, 1+msMinPosition, matrix.Color444((int)random(2,255),(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((buffer[1]-'0'), 25, 1+lsMinPosition, matrix.Color444(1,(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((lastMinBuffer[0]-'0'), 18, 1+msLastMinPosition, matrix.Color444((int)random(2,255),(int)random(2,255),(int)random(2,255)),scale_x,scale_y);
+		vectorNumber((lastMinBuffer[1]-'0'), 25, 1+lsLastMinPosition, matrix.Color444((int)random(2,255),35,40),scale_x,scale_y);
+    //    matrix.fillRect(15,15,1,1,matrix.Color444(30,Time.second()%2,Time.second()%2)); //Justin Justin Edit Justin Keller Test
 		if(c3==0) lastMinBuffer[0]=buffer[0];
 		if(c4==0) lastMinBuffer[1]=buffer[1];
 
@@ -1513,320 +854,12 @@ void vectorNumber(int n, int x, int y, int color, float scale_x, float scale_y){
 void word_clock() {
 	DEBUGpln("in word_clock");
 	cls();
-
-	char numbers[19][10] = {"one", "two", "three", "four","five","six","seven","eight","nine","ten",\
-							"eleven","twelve", "thirteen","fourteen","fifteen","sixteen","7teen","8teen","nineteen"};              
-	char numberstens[5][7] = {"ten","twenty","thirty","forty","fifty"};
-
-	//	byte hours_y, mins_y; //hours and mins and positions for hours and mins lines  
-
-	bool firstpass = true;		// set first pass flag
-	byte hours = Time.hour();
-	byte mins  = Time.minute();
-
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {		
-		if (mode_changed == 1)
-			return;
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			word_clock();
-			return;
-		}
-
-		//print the time if it has changed or if we have just come into the subroutine
-		if ( firstpass || mins != Time.minute() ) {
-
-			// Reset first pass flag
-			if (firstpass)
-				firstpass = false;
-
-			//reset these for comparison next time
-			mins = Time.minute();   
-			hours = Time.hour();
-
-			//make hours into 12 hour format
-			if (hours > 12){ 
-				hours = hours - 12; 
-			}
-			if (hours == 0){ 
-				hours = 12; 
-			} 
-
-			//split mins value up into two separate digits 
-			int minsdigit = mins % 10;
-			byte minsdigitten = (mins / 10) % 10;
-
-			char str_top[8];
-			char str_bot[8];
-			char str_mid[8];
-
-			//if mins <= 10 , then top line has to read "minsdigti past" and bottom line reads hours
-			if (mins < 10) {     
-				strcpy (str_top,numbers[minsdigit - 1]);
-				strcpy (str_mid,"PAST");
-				strcpy (str_bot,numbers[hours - 1]);
-			}
-			//if mins = 10, cant use minsdigit as above, so soecial case to print 10 past /n hour.
-			if (mins == 10) {     
-				strcpy (str_top,numbers[9]);
-				strcpy (str_mid,"PAST");
-				strcpy (str_bot,numbers[hours - 1]);
-			}
-
-			//if time is not on the hour - i.e. both mins digits are not zero, 
-			//then make top line read "hours" and bottom line ready "minstens mins" e.g. "three /n twenty one"
-			else if (minsdigitten != 0 && minsdigit != 0  ) {
-
-				strcpy (str_top,numbers[hours - 1]); 
-
-				//if mins is in the teens, use teens from the numbers array for the bottom line, e.g. "three /n fifteen"
-				if (mins >= 11 && mins <= 19) {
-					strcpy (str_bot, numbers[mins - 1]);
-					strcpy(str_mid," ");
-					//else bottom line reads "minstens mins" e.g. "three \n twenty three"
-				} 
-				else {     
-					strcpy (str_mid, numberstens[minsdigitten - 1]);
-					strcpy (str_bot, numbers[minsdigit -1]);
-				}
-			}
-			// if mins digit is zero, don't print it. read read "hours" "minstens" e.g. "three /n twenty"
-			else if (minsdigitten != 0 && minsdigit == 0  ) {
-				strcpy (str_top, numbers[hours - 1]);     
-				strcpy (str_bot, numberstens[minsdigitten - 1]);
-				strcpy (str_mid, " " );
-			}
-
-			//if both mins are zero, i.e. it is on the hour, the top line reads "hours" and bottom line reads "o'clock"
-			else if (minsdigitten == 0 && minsdigit == 0  ) {
-				strcpy (str_top,numbers[hours - 1]);     
-				strcpy (str_bot, "O'CLOCK");
-				strcpy (str_mid, " ");
-			}
-
-			//work out offset to center top line on display. 
-			byte lentop = 0;
-			while(str_top[lentop]) { 
-				lentop++; 
-			}; //get length of message
-			byte offset_top;
-			if(lentop<6){
-				offset_top = (X_MAX - ((lentop*6)-1)) / 2; //
-			}
-			else{
-				offset_top = (X_MAX - ((lentop - 1)*4)) / 2; //
-			}
-
-			//work out offset to center bottom line on display. 
-			byte lenbot = 0;
-			while(str_bot[lenbot]) { 
-				lenbot++; 
-			}; //get length of message
-			byte offset_bot;
-			if(lenbot<6){
-				offset_bot = (X_MAX - ((lenbot*6)-1)) / 2; //
-			}
-			else{
-				offset_bot = (X_MAX - ((lenbot - 1)*4)) / 2; //
-			}
-
-			byte lenmid = 0;
-			while(str_mid[lenmid]) { 
-				lenmid++; 
-			}; //get length of message
-			byte offset_mid;
-			if(lenmid<6){
-				offset_mid = (X_MAX - ((lenmid*6)-1)) / 2; //
-			}
-			else{
-				offset_mid = (X_MAX - ((lenmid - 1)*4)) / 2; //
-			}
-
-			cls();
-			drawString(offset_top,(lenmid>1?0:2),str_top,(lentop<6?53:51),matrix.Color333(0,1,5));
-			if(lenmid>1){
-				drawString(offset_mid,5,str_mid,(lenmid<6?53:51),matrix.Color333(1,1,5));
-			}
-			drawString(offset_bot,(lenmid>1?10:8),str_bot,(lenbot<6?53:51),matrix.Color333(0,5,1));    
-			matrix.swapBuffers(false);
-		}
-		Particle.process();	//Give the background process some lovin'
-		delay (50); 
-	}
 }
 
 
 //show time and date and use a random jumble of letters transition each time the time changes.
 void jumble() {
-
-	char days[7][4] = {"SUN","MON","TUE", "WED", "THU", "FRI", "SAT"};
-	char allchars[37] = {"ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"};
-	char endchar[16];
-	byte counter[16];
-	byte seq[16];
-
-	bool firstpass = true;		// set first pass flag
-
-	DEBUGpln("in Jumble");
-	cls();
-
-	byte mins = Time.minute();
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {
-		if (mode_changed == 1)
-		return;
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			jumble();
-			return;
-		}
-
-		if ( firstpass || mins != Time.minute()  ) { 
-		
-			// Reset first pass flag
-			if (firstpass)
-				firstpass = false;
-			
-			//fill an array with 0-15 and randomize the order so we can plot letters in a jumbled pattern rather than sequentially
-			for (int i=0; i<16; i++) {
-				seq[i] = i;  // fill the array in order
-			}
-			//randomise array of numbers 
-			for (int i=0; i<(16-1); i++) {
-				int r = i + (rand() % (16-i)); // Random remaining position.
-				int temp = seq[i]; 
-				seq[i] = seq[r]; 
-				seq[r] = temp;
-			}
-
-			//reset these for comparison next time
-			mins = Time.minute();
-			byte hours = Time.hour();   
-			byte dow   = Time.weekday() - 1; 
-			byte date  = Time.day();
-
-			byte alldone = 0;
-
-			//set counters to 50
-			for(byte c=0; c<16 ; c++) {
-				counter[c] = 3 + random (0,20);
-			}
-
-			//set final characters
-			char buffer[3];
-			itoa(hours,buffer,10);
-
-			//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-			if (hours < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-
-			endchar[0] = buffer[0];
-			endchar[1] = buffer[1];
-			endchar[2] = ':';
-
-			itoa (mins, buffer, 10);
-			if (mins < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-
-			endchar[3] = buffer[0];
-			endchar[4] = buffer[1];
-
-			itoa (date, buffer, 10);
-			if (date < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-
-			//then work out date 2 letter suffix - eg st, nd, rd, th etc
-			char suffix[4][3]={"st", "nd", "rd", "th"};
-			byte s = 3; 
-			if(date == 1 || date == 21 || date == 31) {
-				s = 0;
-			} 
-			else if (date == 2 || date == 22) {
-				s = 1;
-			} 
-			else if (date == 3 || date == 23) {
-				s = 2;
-			}
-			//set topline
-			endchar[5] = ' ';
-			endchar[6] = ' ';
-			endchar[7] = ' ';
-
-			//set bottom line
-			endchar[8] = days[dow][0];
-			endchar[9] = days[dow][1];
-			endchar[10] = days[dow][2];
-			endchar[11] = ' ';
-			endchar[12] = buffer[0];
-			endchar[13] = buffer[1];
-			endchar[14] = suffix[s][0];
-			endchar[15] = suffix[s][1];
-
-			byte x = 0;
-			byte y = 0;
-
-			//until all counters are 0
-			while (alldone < 16){
-
-				//for each char    
-				for(byte c=0; c<16 ; c++) {
-
-					if (seq[c] < 8) { 
-						x = 0;
-						y = 0; 
-					} 
-					else {
-						x = 8;
-						y = 8;   
-					}
-
-					//if counter > 1 then put random char
-					if (counter[ seq[c] ] > 1) {
-						matrix.fillRect((seq[c]-x)*4,y,3,5,matrix.Color333(0,0,0));
-						drawChar((seq[c] - x) *4, y, allchars[random(0,36)],51,matrix.Color444(1,0,0));
-						counter[ seq[c] ]--;
-						matrix.swapBuffers(true);
-					}
-
-					//if counter == 1 then put final char 
-					if (counter[ seq[c] ] == 1) {
-						matrix.fillRect((seq[c]-x)*4,y,3,5,matrix.Color444(0,0,0));
-						drawChar((seq[c] - x) *4, y, endchar[seq[c]],51,matrix.Color444(0,0,1));
-						counter[seq[c]] = 0;
-						alldone++;
-						matrix.swapBuffers(true);
-					} 
-
-					//if counter == 0 then just pause to keep update rate the same
-					if (counter[seq[c]] == 0) {
-						delay(4);
-					}
-
-					if (mode_changed == 1)
-					return;
-				}
-				Particle.process();//Give the background process some lovin'
-				if (mode_changed == 1)
-					return;
-			}
-		}
-		delay(50);
-	} //showclock
 }
-
 
 void display_date()
 {
@@ -2420,110 +1453,11 @@ int neighbours(int x, int y) {
 
 void conwayLife()
 {
-	int currentPalette = 0;
-	int generation = 0;
-	unsigned long slowFrameRate = millis();
-	
-	cls();
-	
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {
-		if (mode_changed == 1)
-		return;	
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			conwayLife();
-			return;
-		}
-
-		if (millis() - slowFrameRate >= 150) {
-
-			if (generation == 0) {
-				matrix.fillScreen(Black);
-				randomFillWorld();
-				currentPalette = random(0, 17);
-			}
-
-			// Display current generation
-			for (int i = 0; i < kMatrixWidth; i++) {
-				for (int j = 0; j < kMatrixHeight; j++) {
-					if (world[i][j].alive == 1) {
-						matrix.drawPixel(i,j, colorPalette[currentPalette]);
-					}
-					else {
-						matrix.drawPixel(i,j, Black);
-					}
-				}
-			}
-
-			// Birth and death cycle
-			for (int x = 0; x < kMatrixWidth; x++) {
-				for (int y = 0; y < kMatrixHeight; y++) {
-					// Default is for cell to stay the same
-					int count = neighbours(x, y);
-					if (count == 3 && world[x][y].prev == 0) {
-						// A new cell is born
-						world[x][y].alive = 1;
-					} 
-					else if ((count < 2 || count > 3) && world[x][y].prev == 1) {
-						// Cell dies
-						world[x][y].alive = 0;
-					}
-				}
-			}
-
-			// Copy next generation into place
-			for (int x = 0; x < kMatrixWidth; x++) {
-				for (int y = 0; y < kMatrixHeight; y++) {
-					world[x][y].prev = world[x][y].alive;
-				}
-			}
-
-			if (generation++ >= 256)
-			generation = 0;
-
-			// Display the time
-			matrix.fillRect(7, 0, 19, 7, 0);
-			
-			int mins = Time.minute();
-			int hours = Time.hour();
-			char buffer[3];
-
-			itoa(hours,buffer,10);
-			//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-			if (hours < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-			vectorNumber(buffer[0]-'0',8,1,matrix.Color333(229,0,0),1,1);
-			vectorNumber(buffer[1]-'0',12,1,matrix.Color333(229,0,0),1,1);
-
-			itoa(mins,buffer,10);
-			//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-			if (mins < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-			vectorNumber(buffer[0]-'0',18,1,matrix.Color333(229,0,0),1,1);
-			vectorNumber(buffer[1]-'0',22,1,matrix.Color333(229,0,0),1,1);
-
-			matrix.drawPixel(16,2,matrix.Color333(229,0,0));
-			matrix.drawPixel(16,4,matrix.Color333(229,0,0));
-			
-			matrix.swapBuffers(false);
-			
-			delay(33);
-		}
-		Particle.process();	//Give the background process some lovin'
-		delay(30);
-	}
 }
 
 void rainbow() {
-	long hval = 0;
+    normal_clock();
+/*	long hval = 0;
 	uint8_t x, y, r, g, b, a;
 	int16_t hue = 0;
 		
@@ -2589,6 +1523,5 @@ void rainbow() {
 		matrix.swapBuffers(false);
 		Particle.process();	//Give the background process some lovin'
 		delay(50);
-	}
+	} */
 }
-
