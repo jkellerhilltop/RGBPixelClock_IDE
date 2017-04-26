@@ -125,7 +125,7 @@ boolean demoActive;
 /***** Weather webhook definitions *****/
 #define HOOK_RESP	"hook-response/"	// specify your hook event name here
 #define HOOK_PUB	""		// and here
-#define DEFAULT_CITY	"\"mycity\":\"Rosemont,PA\""	// Change to desired default city,state
+#define DEFAULT_CITY	"\"mycity\":\",\""	// Change to desired default city,state
 #define API_KEY		"\"apikey\":\"\""// Add your API key here
 #define UNITS		"\"units\":\"imperial\""		// Change to "imperial" for farenheit units
 /***************************************/
@@ -923,14 +923,11 @@ void display_date()
 		s = 2;
 	} 
 
-	//print the 1st date number
 	drawChar(0,8,buffer[0],51,color);
 	matrix.swapBuffers(true);
 
-	//if date is under 10 - then we only have 1 digit so set positions of sufix etc one character nearer
 	byte suffixposx = 4;
 
-	//if date over 9 then print second number and set xpos of suffix to be 1 char further away
 	if (date > 9){
 		suffixposx = 8;
 		flashing_cursor(4,8,3,5,0); 
@@ -1217,12 +1214,6 @@ void spectrumDisplay(){
 					if(col[x][i] < minLvl)      minLvl = col[x][i];
 					else if(col[x][i] > maxLvl) maxLvl = col[x][i];
 				}
-				// minLvl and maxLvl indicate the extents of the FFT output, used
-				// for vertically scaling the output graph (so it looks interesting
-				// regardless of volume level).  If they're too close together though
-				// (e.g. at very low volume levels) the graph becomes super coarse
-				// and 'jumpy'...so keep some minimum distance between them (this
-				// also lets the graph go to zero when no sound is playing):
 				if((maxLvl - minLvl) < 16) maxLvl = minLvl + 8;
 				minLvlAvg[x] = (minLvlAvg[x] * 7 + minLvl) >> 3; // Dampen min/max levels
 				maxLvlAvg[x] = (maxLvlAvg[x] * 7 + maxLvl) >> 3; // (fake rolling average)
@@ -1302,124 +1293,11 @@ void spectrumDisplay(){
 
 void plasma()
 {
-	int           x1, x2, x3, x4, y1, y2, y3, y4, sx1, sx2, sx3, sx4;
-	unsigned char x, y;
-	long          value;
-	unsigned long slowFrameRate = millis();
-	
-	cls();
-	
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {		
-		if (mode_changed == 1)
-		return;	
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			spectrumDisplay();
-			return;
-		}
-		
-		if (millis() - slowFrameRate >= 66) {
-			
-			sx1 = (int)(cos(angle1) * radius1 + centerx1);
-			sx2 = (int)(cos(angle2) * radius2 + centerx2);
-			sx3 = (int)(cos(angle3) * radius3 + centerx3);
-			sx4 = (int)(cos(angle4) * radius4 + centerx4);
-			y1  = (int)(sin(angle1) * radius1 + centery1);
-			y2  = (int)(sin(angle2) * radius2 + centery2);
-			y3  = (int)(sin(angle3) * radius3 + centery3);
-			y4  = (int)(sin(angle4) * radius4 + centery4);
 
-			for(y=0; y<(matrix.height()); y++) {
-				x1 = sx1; x2 = sx2; x3 = sx3; x4 = sx4;
-				for(x=0; x<matrix.width(); x++) {
-					value = hueShift
-					+ (int8_t)pgm_read_byte(sinetab + (uint8_t)((x1 * x1 + y1 * y1) >> 4))
-					+ (int8_t)pgm_read_byte(sinetab + (uint8_t)((x2 * x2 + y2 * y2) >> 4))
-					+ (int8_t)pgm_read_byte(sinetab + (uint8_t)((x3 * x3 + y3 * y3) >> 5))
-					+ (int8_t)pgm_read_byte(sinetab + (uint8_t)((x4 * x4 + y4 * y4) >> 5));
-					matrix.drawPixel(x, y, matrix.ColorHSV(value * 3, 255, 255, true));
-					x1--; x2--; x3--; x4--;
-				}
-				y1--; y2--; y3--; y4--;
-			}
-
-			angle1 += 0.03;
-			angle2 -= 0.07;
-			angle3 += 0.13;
-			angle4 -= 0.15;
-			hueShift += 2;
-
-			matrix.fillRect(7, 0, 19, 7, 0);
-			
-			int mins = Time.minute();
-			int hours = Time.hour();
-			char buffer[3];
-
-			itoa(hours,buffer,10);
-			//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-			if (hours < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-			vectorNumber(buffer[0]-'0',8,1,matrix.Color333(229,0,0),1,1);
-			vectorNumber(buffer[1]-'0',12,1,matrix.Color333(229,0,0),1,1);
-
-			itoa(mins,buffer,10);
-			//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-			if (mins < 10) {
-				buffer[1] = buffer[0];
-				buffer[0] = '0';
-			}
-			vectorNumber(buffer[0]-'0',18,1,matrix.Color333(229,0,0),1,1);
-			vectorNumber(buffer[1]-'0',22,1,matrix.Color333(229,0,0),1,1);
-
-			matrix.drawPixel(16,2,matrix.Color333(229,0,0));
-			matrix.drawPixel(16,4,matrix.Color333(229,0,0));
-			
-			matrix.swapBuffers(false);
-			
-			slowFrameRate = millis();
-		}
-		Particle.process();	//Give the background process some lovin'
-	}
 }
 
 void marquee()
 {
-	char topLine[40] = {""};
-	char botmLine[40] = "BOTTOM LINE GOES HERE";
-	String tFull;
-	
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {
-
-		if (mode_changed == 1)
-			return;
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			marquee();
-			return;
-		}
-		
-		tFull = Time.timeStr();
-		tFull.toUpperCase();
-		tFull.toCharArray(topLine, tFull.length()+1);
-		tFull = "";
-
-		//scrollBigMessage(topLine);
-		scrollMessage(topLine, botmLine, 53, 53, Green, Navy);
-		
-		delay(50);
-		
-		Particle.process();
-	}
 }
 
 
@@ -1457,71 +1335,4 @@ void conwayLife()
 
 void rainbow() {
     normal_clock();
-/*	long hval = 0;
-	uint8_t x, y, r, g, b, a;
-	int16_t hue = 0;
-		
-	cls();
-	
-	int showTime = Time.now();
-	
-	while((Time.now() - showTime) < showClock) {
-		if (mode_changed == 1)
-			return;	
-		if(mode_quick){
-			mode_quick = false;
-			display_date();
-			quickWeather();
-			conwayLife();
-			return;
-		}
-
-		// Draw alternating rainbow
-		for(x=0; x<matrix.width(); x++) {
-			for(int h=hue, y=0; y<matrix.height(); y++, h += 48) {
-				a = h;
-				switch((h >> 8) % 6) {
-				case 0: r = 255; g =   a; b =   0; break;
-				case 1: r =  ~a; g = 255; b =   0; break;
-				case 2: r =   0; g = 255; b =   a; break;
-				case 3: r =   0; g =  ~a; b = 255; break;
-				case 4: r =   a; g =   0; b = 255; break;
-				case 5: r = 255; g =   0; b =  ~a; break;
-				}
-				matrix.drawPixel(x, y, matrix.Color888(r, g, b, true));
-			}
-		}
-		hue += 7;
-		if(hue >= 1536) hue -= 1536;
-		
-		// Display the time
-		int mins = Time.minute();
-		int hours = Time.hour();
-		char buffer[3];
-
-		itoa(hours,buffer,10);
-		//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-		if (hours < 10) {
-			buffer[1] = buffer[0];
-			buffer[0] = '0';
-		}
-		vectorNumber(buffer[0]-'0',8,1,Black,1,1);
-		vectorNumber(buffer[1]-'0',12,1,Black,1,1);
-
-		itoa(mins,buffer,10);
-		//fix - as otherwise if num has leading zero, e.g. "03" hours, itoa coverts this to chars with space "3 ". 
-		if (mins < 10) {
-			buffer[1] = buffer[0];
-			buffer[0] = '0';
-		}
-		vectorNumber(buffer[0]-'0',18,1,Black,1,1);
-		vectorNumber(buffer[1]-'0',22,1,Black,1,1);
-
-		matrix.drawPixel(16,2,Black);
-		matrix.drawPixel(16,4,Black);
-			
-		matrix.swapBuffers(false);
-		Particle.process();	//Give the background process some lovin'
-		delay(50);
-	} */
 }
